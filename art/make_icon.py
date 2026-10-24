@@ -143,24 +143,24 @@ def sprite(rows, colours, ox, oy, cell, rim_side, rim_keys, noise_keys):
 
 # ---------------- Steve, leaning in from the right ----------------
 STEVE = [
-    "..HHHHHHHH...",
-    "..HHHHHHHH...",
-    "..HSSSSSSH...",
-    "..SSSSSSSS...",
-    "..SEBSSBES...",
-    "..SSSNNSSS...",
-    "..SSMMMMSS...",
-    "..SSSSSSSS...",
+    ".....HHHHHHHH",
+    ".....HHHHHHHH",
+    ".....HSSSSSSH",
+    ".....SSSSSSSS",
+    ".....SEBSSBES",
+    ".....SSSNNSSS",
+    ".....SSMMMMSS",
+    ".....SSSSSSSS",
     ".....cCCCCCCC",
-    "AAAA.cCCCCCCC",
-    "AAAA.cCCCCCCC",
-    "aAAA.cCCCCCCC",
-    "aAAA.cCCCCCCC",
-    "kkkk.cCCCCCCC",
-    "kkkk.cCCCCCCC",
-    "kkkk.cCCCCCCC",
-    "sKKK.pPPPPPPP",
-    "sKKK.pPPPPPPP",
+    ".AAAAcCCCCCCC",
+    ".AAAAcCCCCCCC",
+    ".aAAAcCCCCCCC",
+    ".aAAAcCCCCCCC",
+    ".kkkkcCCCCCCC",
+    ".kkkkcCCCCCCC",
+    ".kkkkcCCCCCCC",
+    ".sKKKpPPPPPPP",
+    ".sKKKpPPPPPPP",
     ".....pPPpPPPP",
     ".....pPPpPPPP",
     ".....pPPpPPPP",
@@ -176,7 +176,7 @@ STEVE_COL = {
     "A": hexc("#14a3a8"), "a": hexc("#0d7f86"), "k": hexc("#c4906d"), "K": hexc("#b07e5e"),
     "s": hexc("#9a6a4c"), "P": hexc("#3c3c9c"), "p": hexc("#2c2c78"),
 }
-sprite(STEVE, STEVE_COL, 38, 12, 2, -1, "HSCAkKP", "HSCAkP")
+sprite(STEVE, STEVE_COL, 35, 12, 2, -1, "HSCAkKP", "HSCAkP")
 
 # ---------------- glowing compass ----------------
 CC = (37.0, 52.0)
