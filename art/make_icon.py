@@ -1,7 +1,7 @@
 """Draws the FetchPets icon as 64x64 pixel art, then scales it to 512x512.
 
-A tamed wolf (red collar) sniffing a glowing compass whose needle points at it,
-on a grassy hill at sunset.
+A tamed wolf (red collar) and Steve leaning over a glowing compass whose needle
+points at the wolf, on a grassy hill at sunset.
 Run:  python art/make_icon.py   ->  art/icon.png (512) and art/icon-64.png (1:1 sprite)
 """
 import math
@@ -48,7 +48,7 @@ def dither(bands, t, x, y):
 
 # ---------------- sunset sky ----------------
 SKY = [hexc(h) for h in ("#25265e", "#3d2f78", "#6a3a86", "#a8487a", "#e0695a", "#f59a4a", "#ffc864")]
-SUN = (44.0, 30.0)
+SUN = (31.0, 29.0)
 for y in range(N):
     for x in range(N):
         # warmer toward the sun, cooler toward the top corners
@@ -81,7 +81,7 @@ for x in range(N):
         put(x, y, FAR)
 # big blocky trees at the edges, framing the scene like the reference
 LEAF = [hexc(h) for h in ("#141c18", "#1b2620", "#24332a", "#2f4234")]
-for left, top, w, h in ((-5, 4, 15, 19), (51, 2, 17, 21)):
+for left, top, w, h in ((-5, 4, 15, 19),):
     tx = left + w // 2 - 1
     for y in range(top + h - 2, 50):
         for k in range(3):
@@ -116,11 +116,73 @@ for bx, by in ((2, 58), (6, 61), (55, 59), (60, 56), (58, 62)):
         put(bx, by - k, GRASS[3] if k < 2 else GRASS[2])
         put(bx + 1, by - k + 1, GRASS[2])
 
+# ---------------- sprite helper ----------------
+OUTLINE = hexc("#120d10")
+
+
+def sprite(rows, colours, ox, oy, cell, rim_side, rim_keys, noise_keys):
+    """Draw an ASCII pixel map: outline first, then cells, with a warm rim light
+    on the edge facing the sun (rim_side = +1 right edge, -1 left edge)."""
+    cells = {(c, r) for r, row in enumerate(rows) for c, ch in enumerate(row) if ch != "."}
+    for c, r in cells:
+        for yy in range(oy + r * cell - 1, oy + r * cell + cell + 1):
+            for xx in range(ox + c * cell - 1, ox + c * cell + cell + 1):
+                put(xx, yy, OUTLINE)
+    for c, r in cells:
+        ch = rows[r][c]
+        for yy in range(cell):
+            for xx in range(cell):
+                col = colours[ch]
+                if ch in noise_keys and random.random() < 0.15:
+                    col = blend(col, hexc("#000000"), 0.12)
+                edge_x = cell - 1 if rim_side > 0 else 0
+                if ch in rim_keys and xx == edge_x and (c + rim_side, r) not in cells:
+                    col = blend(col, hexc("#ffcf7a"), 0.55)
+                put(ox + c * cell + xx, oy + r * cell + yy, col)
+
+
+# ---------------- Steve, leaning in from the right ----------------
+STEVE = [
+    "..HHHHHHHH...",
+    "..HHHHHHHH...",
+    "..HSSSSSSH...",
+    "..SSSSSSSS...",
+    "..SEBSSBES...",
+    "..SSSNNSSS...",
+    "..SSMMMMSS...",
+    "..SSSSSSSS...",
+    ".....cCCCCCCC",
+    "AAAA.cCCCCCCC",
+    "AAAA.cCCCCCCC",
+    "aAAA.cCCCCCCC",
+    "aAAA.cCCCCCCC",
+    "kkkk.cCCCCCCC",
+    "kkkk.cCCCCCCC",
+    "kkkk.cCCCCCCC",
+    "sKKK.pPPPPPPP",
+    "sKKK.pPPPPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+    ".....pPPpPPPP",
+]
+STEVE_COL = {
+    "H": hexc("#3b2814"), "S": hexc("#c4906d"), "E": hexc("#ffffff"), "B": hexc("#4b3fa0"),
+    "N": hexc("#8a5a40"), "M": hexc("#5c3a22"), "C": hexc("#14a3a8"), "c": hexc("#0d7f86"),
+    "A": hexc("#14a3a8"), "a": hexc("#0d7f86"), "k": hexc("#c4906d"), "K": hexc("#b07e5e"),
+    "s": hexc("#9a6a4c"), "P": hexc("#3c3c9c"), "p": hexc("#2c2c78"),
+}
+sprite(STEVE, STEVE_COL, 38, 12, 2, -1, "HSCAkKP", "HSCAkP")
+
 # ---------------- glowing compass ----------------
-CC = (46.0, 47.5)
-R = 11.5
+CC = (37.0, 52.0)
+R = 9.5
 GOLD = hexc("#ffd23f")
-# glow halo
+# glow halo (also washes gold over Steve's arm and the grass)
 for y in range(N):
     for x in range(N):
         d = math.hypot(x - CC[0], y - CC[1])
@@ -137,13 +199,12 @@ for y in range(N):
             put(x, y, blend(hexc("#7d7d82"), hexc("#e2e2e6"), 0.5 + lit))
         if d <= R - 2.2:
             put(x, y, hexc("#26262b") if (x + y) % 7 else hexc("#303036"))
-# rim notches (N/E/S/W)
 for ang in (0, 90, 180, 270):
     a = math.radians(ang)
     put(CC[0] + math.cos(a) * (R - 1.1), CC[1] + math.sin(a) * (R - 1.1), hexc("#3a3a40"))
 
 # needle: red end points up-left, toward the wolf
-NEEDLE_ANG = math.radians(-148)
+NEEDLE_ANG = math.radians(-150)
 dxn, dyn = math.cos(NEEDLE_ANG), math.sin(NEEDLE_ANG)
 pxn, pyn = -dyn, dxn
 
@@ -151,7 +212,7 @@ pxn, pyn = -dyn, dxn
 def needle(length, colour, shade, sign):
     for s in range(int(length * 4)):
         f = s / (length * 4)
-        half = (1 - f) * 2.6
+        half = (1 - f) * 2.4
         for w in range(-6, 7):
             o = w / 6 * half
             x = CC[0] + sign * dxn * f * length + pxn * o
@@ -159,10 +220,9 @@ def needle(length, colour, shade, sign):
             put(x, y, colour if o < 0 else shade)
 
 
-needle(9.0, hexc("#ff4a2e"), hexc("#c0201a"), 1)
-needle(7.0, hexc("#f2f2f2"), hexc("#a9a9b0"), -1)
+needle(7.8, hexc("#ff4a2e"), hexc("#c0201a"), 1)
+needle(6.0, hexc("#f2f2f2"), hexc("#a9a9b0"), -1)
 put(CC[0], CC[1], hexc("#5a5a60"))
-put(CC[0] - 1, CC[1], hexc("#8a8a90"))
 
 # gold sparkles around the compass
 for _ in range(18):
@@ -172,50 +232,28 @@ for _ in range(18):
 
 # ---------------- the wolf (side view, facing the compass) ----------------
 WOLF = [
-    "...........DD.DD...",
-    "..........GGGGGG...",
-    "..........GWWWKW...",
-    "..........GWWWWWMMK",
-    "T.........GRWWWWMMM",
-    "TT.GGGGGGGWRWWWWmm.",
-    ".TGGWWWWWWWRGGGG...",
-    "..GWWWWWWWWRWWW....",
-    "..GWWWWWWWWWWWW....",
-    "..GWWWWWWWWWWWG....",
-    "..GWW.WW....WW.WW..",
-    "..GWW.WW....WW.WW..",
-    "...DD.DD....DD.DD..",
+    "........DD.DD...",
+    ".......GGGGGG...",
+    ".......GWWWKW...",
+    ".......GWWWWWMMK",
+    "T......GRWWWWMMM",
+    "TT.GGGGWRWWWWmm.",
+    ".TGGWWWWRGGGG...",
+    "..GWWWWWRWWWWW..",
+    "..GWWWWWWWWWWW..",
+    "..GWWWWWWWWWWG..",
+    "..WW.WW...WW.WW.",
+    "..WW.WW...WW.WW.",
+    "..DD.DD...DD.DD.",
 ]
-COL = {
+WOLF_COL = {
     "G": hexc("#bfb6ab"), "W": hexc("#ece6dc"), "M": hexc("#f8f4ee"),
     "D": hexc("#7f766c"), "K": hexc("#141014"), "m": hexc("#d3c9bd"),
     "R": hexc("#d72f2a"), "T": hexc("#cfc6ba"),
 }
-CELL = 2
-OX, OY = 1, 33
-OUTLINE = hexc("#120d10")
-cells = {(c, r) for r, row in enumerate(WOLF) for c, ch in enumerate(row) if ch != "."}
-for c, r in cells:
-    for yy in range(OY + r * CELL - 1, OY + r * CELL + CELL + 1):
-        for xx in range(OX + c * CELL - 1, OX + c * CELL + CELL + 1):
-            put(xx, yy, OUTLINE)
-for r, row in enumerate(WOLF):
-    for c, ch in enumerate(row):
-        if ch == ".":
-            continue
-        for yy in range(CELL):
-            for xx in range(CELL):
-                col = COL[ch]
-                if ch in "GWT" and random.random() < 0.15:
-                    col = blend(col, hexc("#9a9184"), 0.3)
-                # warm sunset rim light on the side facing the compass/sun
-                if ch in "GWMT" and xx == CELL - 1 and (c + 1, r) not in cells:
-                    col = blend(col, hexc("#ffcf7a"), 0.55)
-                if ch == "R" and yy == 0:
-                    col = blend(col, hexc("#ff9a7a"), 0.35)
-                put(OX + c * CELL + xx, OY + r * CELL + yy, col)
-# eye shine
-put(OX + 14 * CELL + 1, OY + 2 * CELL, hexc("#ffffff"))
+WX, WY = -3, 35
+sprite(WOLF, WOLF_COL, WX, WY, 2, +1, "GWMT", "GWT")
+put(WX + 11 * 2 + 1, WY + 2 * 2, hexc("#ffffff"))   # eye shine
 
 img.save(OUT / "icon-64.png")
 img.resize((512, 512), Image.NEAREST).save(OUT / "icon.png")
